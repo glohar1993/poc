@@ -1,0 +1,32 @@
+name: RDS Backup
+
+on:
+  workflow_dispatch:
+    inputs:
+      instance_identifier:
+        description: 'RDS instance identifier'
+        required: true
+      region:
+        description: 'AWS region'
+        required: true
+      snapshot_name:
+        description: 'Snapshot name'
+        required: true
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+        
+    - name: Install dependencies
+      run: pip install boto3
+    
+    - name: Run backup script
+      run: python rds_backup.py ${{ github.event.inputs.instance_identifier }} ${{ github.event.inputs.region }} ${{ github.event.inputs.snapshot_name }} 
