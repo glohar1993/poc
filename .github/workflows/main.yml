@@ -23,5 +23,5 @@ jobs:
       - name: Run script
         run: python list_buckets.py
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }} 
+          AKIA2WP4H2PBWFA7V3CU: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          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: ${{ secrets.AWS_SECRET_ACCESS_KEY }} 
