@@ -1,0 +1,108 @@
+name: Dynamodb Onboarding Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      table_name:
+        required: true
+        description: Dynamodb table to be used for Backup
+        type: string
+      aws_account:
+        type: choice
+        description: Provide the aws account where dynamo db table exists
+        required: true
+        default: CX.TRAVEL.POC.APPDR
+        options:
+          - Travelclientqa
+          - Travelclientstage
+          - Travelclientprod
+          - Travel-QA
+          - Travel-Stage
+          - Travel-Prod
+          - CXLoyalty-Common
+          - PCI-QA
+          - PCI-STAGE
+          - PCI-PROD
+          - CX.TRAVEL.POC.APPDR
+          - CX.TRAVEL.POC.NWDR
+          - CX.TRAVEL.POC.TOOLDR
+      region_name:
+        required: true
+        description: aws region where the table exists
+        type: string
+        default: us-east-1
+      backup_retention_period:
+        required: true
+        description: No of days the backup needs to be retained. Should not be less than 30 days
+        default: 30
+      backup_frequency:
+        required: true
+        description: Frequency for scheduled backups
+        type: choice
+        options:
+          - daily
+          - twice_a_day
+        default: daily
+      restore_frequency:
+        required: true
+        description: Frequency for scheduled restore
+        type: choice
+        options:
+          - daily
+          - twice_a_day
+        default: daily
+      repository:
+        required: true
+        description: Select product to commit workflow in their repo
+        type: choice
+        options:
+          - Flights
+          - Core
+          - CIA
+          - test
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  validation:
+    name: Validate retention period
+    runs-on: ${{ inputs.aws_account }}
+    steps:
+      - name: Check backup retention days input
+        if: github.event.inputs.backup_retention_period < 30
+        run: |
+          echo "The input for backup retention period cannot be less than 30 days."
+          exit 1
+
+  build:
+    name: Build and test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        table_name: [${{ inputs.table_name }}]
+        aws_account: [${{ inputs.aws_account }}]
+        region_name: [${{ inputs.region_name }}]
+        backup_retention_period: [${{ inputs.backup_retention_period }}]
+        backup_frequency: [${{ inputs.backup_frequency }}]
+        restore_frequency: [${{ inputs.restore_frequency }}]
+        repository: [${{ inputs.repository }}]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Node.js environment
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14.x
+      - name: Build and test
+        run: |
+          # Your build and test commands here
+          echo "Building and testing with table name: ${{ matrix.table_name }}"
+          echo "Using AWS account: ${{ matrix.aws_account }}"
+          echo "In region: ${{ matrix.region_name }}"
+          echo "Backup retention period: ${{ matrix.backup_retention_period }}"
+          echo "Backup frequency: ${{ matrix.backup_frequency }}"
+          echo "Restore frequency: ${{ matrix.restore_frequency }}"
+          echo "Committing to repository: ${{ matrix.repository }}"
